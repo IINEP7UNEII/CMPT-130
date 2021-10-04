@@ -5,7 +5,8 @@ using namespace std;
 
 //function prototypes
 int validValue (int);
-string isPerfectSquare (int);
+bool isPerfectSquare (int);
+bool isPrime (int);
 
 int main()
 {
@@ -38,7 +39,7 @@ int main()
                 ++factorCount;
             }
         }
-        cout << '(' << factorCount << ')' << isPerfectSquare(currentNum) << '\n';
+        cout << '(' << factorCount << ')' << isPerfectSquare(currentNum) << isPrime(currentNum) << '\n';
         factorCount = 0;
     }
 
@@ -57,8 +58,23 @@ int validValue(int input)
     return input;
 }
 
-string isPerfectSquare (int num) //continue here peter
+bool isPerfectSquare (int num)
 {
-    double square = 0.0;
+    int square = 0;
+    
+    square = sqrt(num);
+
+    if ((square * square) == num)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool isPrime (int num) //continue building funcitons
+{
 
 }
