@@ -8,7 +8,7 @@ int sumOfDigits (int);
 int productOfDigits (int);
 string isPerfectSquare (int);
 string isPrime (int);
-string isInteresting (int, int);
+string isInteresting (int, int, int);
 
 int main()
 {
@@ -45,8 +45,8 @@ int main()
         factorCount = 0;
     }
 
-    cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue)), productOfDigits(firstValue);
-    cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue)), productOfDigits(secondValue);
+    cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue), productOfDigits(firstValue));
+    cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue), productOfDigits(secondValue));
 
     system("pause");
 }
