@@ -86,4 +86,3 @@ string isPrime (int factors)
 }
 
 //continue interesting numbers function
-//test
