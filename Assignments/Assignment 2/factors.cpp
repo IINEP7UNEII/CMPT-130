@@ -33,6 +33,7 @@ int main()
     {
         cout << setw(4) << currentNum << setw(4);
 
+        //for loop that displays the factors of a number and count how many there are
         for (int factorNum = 1; factorNum <= currentNum; ++factorNum)
         {
             if ((currentNum % factorNum) == 0)
@@ -41,6 +42,7 @@ int main()
                 ++factorCount;
             }
         }
+        //output whether a number is perfect or prime
         cout << '(' << factorCount << ')' << isPerfectSquare(currentNum) << isPrime(factorCount) << '\n';
         factorCount = 0;
     }
@@ -105,13 +107,15 @@ int sumOfDigits (int num)
 
 int productOfDigits (int num)
 {
-    int product = 0;
+    int product = 1;
+    int remainder = 0;
 
-    while (num != 0) 
-    {
-        product *= num % 10;
-        num = num / 10;
-    }
+    while (num > 0)
+	{
+    	remainder = num % 10;
+    	product = product * remainder;
+    	num = num / 10;
+	}
     return product;
 }
 
@@ -125,4 +129,4 @@ string isInteresting (int num, int sum, int product)
     {
         return {};
     }
-} //fix
+} //comments
