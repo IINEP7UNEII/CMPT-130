@@ -84,5 +84,4 @@ string isPrime (int factors)
         return {};
     }
 }
-//test
 //continue interesting numbers function
