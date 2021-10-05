@@ -45,8 +45,8 @@ int main()
         factorCount = 0;
     }
 
-    cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue), productOfDigits(firstValue));
-    cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue), productOfDigits(secondValue));
+    cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue)), productOfDigits(firstValue);
+    cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue)), productOfDigits(secondValue);
 
     system("pause");
 }
