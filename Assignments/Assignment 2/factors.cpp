@@ -12,7 +12,7 @@ string isInteresting (int, int, int);
 
 int main()
 {
-    //initializes first and second value variables
+    //initializes intergers we use for input and counting amount of factors
     int firstValue = 0;
     int secondValue = 0;
     unsigned int factorCount = 0;
@@ -28,12 +28,12 @@ int main()
     validValue(secondValue);
     cout << '\n';
 
-    //loop to list values from lowest to highest
+    //loop to list numbers we take factors from, lowest to highest
     for (int currentNum = firstValue; currentNum <= secondValue; ++currentNum)
     {
         cout << setw(4) << currentNum << setw(4);
 
-        //for loop that displays the factors of a number and count how many there are
+        //for loop that displays the factors of a number and counts how many there are
         for (int factorNum = 1; factorNum <= currentNum; ++factorNum)
         {
             if ((currentNum % factorNum) == 0)
