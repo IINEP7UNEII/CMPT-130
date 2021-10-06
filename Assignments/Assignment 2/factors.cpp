@@ -46,10 +46,10 @@ int main()
         cout << '(' << factorCount << ')' << isPerfectSquare(currentNum) << isPrime(factorCount) << '\n';
         factorCount = 0;
     }
-
     cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue), productOfDigits(firstValue));
     cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue), productOfDigits(secondValue));
 
+    //end program, normally we put "return 0;" here but the window closes right away for me
     system("pause");
 }
 
@@ -93,6 +93,7 @@ string isPrime (int factors)
     }
 }
 
+//function determines the sum of a number's digits using modulus to retreive induvidual digits
 int sumOfDigits (int num)
 {
     int sum = 0;
@@ -105,6 +106,7 @@ int sumOfDigits (int num)
     return sum;
 }
 
+//function determines the product of digits using a similar method to the one above
 int productOfDigits (int num)
 {
     int product = 1;
@@ -119,6 +121,7 @@ int productOfDigits (int num)
     return product;
 }
 
+//function determines if a number is interesting by using the formula provided in assignemnt description
 string isInteresting (int num, int sum, int product)
 {
     if ((sum + product) == num)
@@ -129,4 +132,4 @@ string isInteresting (int num, int sum, int product)
     {
         return {};
     }
-} //comments
+}
