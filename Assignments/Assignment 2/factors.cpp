@@ -4,8 +4,11 @@ using namespace std;
 
 //function prototypes
 int validValue (int);
+int sumOfDigits (int);
+int productOfDigits (int);
 string isPerfectSquare (int);
 string isPrime (int);
+string isInteresting (int, int, int);
 
 int main()
 {
@@ -30,6 +33,7 @@ int main()
     {
         cout << setw(4) << currentNum << setw(4);
 
+        //for loop that displays the factors of a number and count how many there are
         for (int factorNum = 1; factorNum <= currentNum; ++factorNum)
         {
             if ((currentNum % factorNum) == 0)
@@ -38,9 +42,13 @@ int main()
                 ++factorCount;
             }
         }
+        //output whether a number is perfect or prime
         cout << '(' << factorCount << ')' << isPerfectSquare(currentNum) << isPrime(factorCount) << '\n';
         factorCount = 0;
     }
+
+    cout << '\n' << firstValue << ": sum of digits = " << sumOfDigits(firstValue) << ' ' << isInteresting(firstValue, sumOfDigits(firstValue), productOfDigits(firstValue));
+    cout << '\n' << secondValue << ": sum of digits = " << sumOfDigits(secondValue) << ' ' << isInteresting(secondValue, sumOfDigits(secondValue), productOfDigits(secondValue));
 
     system("pause");
 }
@@ -84,4 +92,41 @@ string isPrime (int factors)
         return {};
     }
 }
-//continue interesting numbers function
+
+int sumOfDigits (int num)
+{
+    int sum = 0;
+
+    while (num != 0) 
+    {
+        sum += num % 10;
+        num = num / 10;
+    }
+    return sum;
+}
+
+int productOfDigits (int num)
+{
+    int product = 1;
+    int remainder = 0;
+
+    while (num > 0)
+	{
+    	remainder = num % 10;
+    	product = product * remainder;
+    	num = num / 10;
+	}
+    return product;
+}
+
+string isInteresting (int num, int sum, int product)
+{
+    if ((sum + product) == num)
+    {
+        return "--interesting--";
+    }
+    else
+    {
+        return {};
+    }
+} //comments
