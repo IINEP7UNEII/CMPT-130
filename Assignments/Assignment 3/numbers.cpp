@@ -51,9 +51,24 @@ string intToString(int number)
             number = number / 10;
             cout << digit << " - " << ones(digit) << '\n';
         }*/
+        int ones = number % 10;
+        number /= 10;
+        int tens = number % 10;
+        if (tens == 1)
+        {
+            int teens = tens * 10 + ones;
+        }
+        number /= 10;
+        int hundreds = number % 10;
+        number /= 10;
+        int thousands = number % 10;
+
         
 
-
+    }
+    else if (number == 0)
+    {
+        s = "zero";
     }
     else
     {
@@ -74,7 +89,7 @@ void printIntStrings(int start, int end, int interval)
     }
     else if (start > end) //descending order
     {
-        for (int count = end; count = start; count += interval)
+        for (int count = start; count >= end; count -= interval)
         {
             cout << intToString(count);
         }
@@ -93,7 +108,7 @@ string ones(int num) //returns strings for ones
     {
         case 0:
         {
-            word = "zero";
+            word = "zero"; // change
             break;
         }
         case 1:
@@ -213,7 +228,7 @@ string teens(int num) //returns strings for teens
     return word;
 }
 
-string tens(int num) //returns strings for tens
+string tens(int num) //returns strings for tens, calls ones function
 {
     string word = "";
 
@@ -258,10 +273,14 @@ string tens(int num) //returns strings for tens
 
 string hundreds(int num)
 {
+    string word = "";
     //calls other functions
+    return word;
 }
 
 string thousands(int num)
 {
+    string word = "";
     //calls other functions
+    return word;
 }
