@@ -2,6 +2,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
+#include <cstdlib>
 using namespace std;
 
 //function definitions to display mayan numbers
@@ -14,20 +15,22 @@ int numberOfFives(int);
 void printZero(int);
 void printSeparator();
 
-//function definitions for mayan number game
+//function definitions for the mayan number game
 void mayaNumberGame();
 int readNumber();
 char readLetter();
-int randomizerForNumbers(int);
+int randomizerForNumbers(int, int);
 char randomizerForABC();
 
 const int MAYAN_NUMBER_BASE = 20; //vigesimal
-const int MIN_INPUT_NUMBER = 10; //if value enetered is below this, the game will end
+const int MIN_INPUT_NUMBER = 10; //if value entered is below this, the game will end
+const int MIN_CORRECT_NUMBER = 4; //MIN_CORRECT_NUMBER = 4 due to assignment requirements
 
 int main() //main function that only calls printMayanNumber
 {
+    cout << "Mayan representation of the number 5212 as per assignment requirements:\n";
     printMayanNumber(5212); //print the maya representation of the number 5,212 as per assignment requirements
-    cout << "\n\n\n"; //for formatting to make it look uncluttered
+    cout << "\n\n"; //for formatting to make it look uncluttered
 
     mayaNumberGame();
     cout << '\n'; //for formatting to make it look uncluttered
@@ -145,59 +148,89 @@ void printSeparator() //funciton prints seperator between base 20s
 
 void mayaNumberGame()
 {
-    int number = 0;
-    char letter = ' ';
-    char correctLetter = ' ';
-    int correctNumber = 0;
+    int number = 0; //number user inputs
+    char letter = ' '; //letter user inputs as answer (a, b, or c)
+    char correctLetter = ' '; //stores the correct answer (a, b, or c)
+    int correctNumber = 0; //stores the correct number
+    int randomMax = 0; //maximum number that could be generated
+    int randomMin = 0; //minimum number that could be generated
+    int firstRand = 0; // these are used to check if the first and second randomly generated mayan numbers are the same
+    int secondRand = 0; // |
 
     cout << "###MAYAN NUMBER GAME###\n=======================\n\n"
     << "Enter a number greater than 10. The game will choose a number less than or equal to what you entered.\n"
     << "You will then have to match the decimal number to it's Mayan equivalent."
     << "\nEnter a positive integer value greater or equal than 10 (enter a value less than 10 to exit): ";
-    number = readNumber();
-    srand(time(NULL));
+    number = readNumber(); //calls read number function for input handling
+    srand(time(NULL)); //random generator uses time as seed
 
     while (number >= MIN_INPUT_NUMBER) //game loop
     {
-        correctLetter = randomizerForABC();
-        correctNumber = randomizerForNumbers(number);
+        correctLetter = randomizerForABC(); //uses randomizerForABC() to obtain the random letter where the correct answer is
+        correctNumber = randomizerForNumbers(number, MIN_CORRECT_NUMBER); //finds a random value between the value entered by the user and 4 (for assignment requirements)
+
+        randomMax = correctNumber * 1.5; //upper bounds of possible generated value
+        randomMin = correctNumber * 0.5; //lower bounds of possible generated value
+        firstRand = randomizerForNumbers(randomMax, randomMin); //stores the first random number
+        secondRand = randomizerForNumbers(randomMax, randomMin); //stores the second random number
+
+        while (firstRand == secondRand || firstRand == correctNumber || secondRand == correctNumber) //resets random numbers if any of the displayed numbers are the same
+        {
+            firstRand = randomizerForNumbers(randomMax, randomMin);
+            secondRand = randomizerForNumbers(randomMax, randomMin);
+        }
 
         cout << "Which of these Mayan numbers is equal to " << correctNumber << '?';
 
         cout << "\n\na.\n";
-        if (correctLetter == 'a')
+        if (correctLetter == 'a') //displays mayan number for a (could be correct or incorrect value)
         {
             printMayanNumber(correctNumber);
         }
         else
         {
-            printMayanNumber(randomizerForNumbers(number));
+            printMayanNumber(firstRand);
+            firstRand = 0;
         }
 
         cout << "\nb.\n";
-        if (correctLetter == 'b')
+        if (correctLetter == 'b') //displays mayan number for b (could be correct or incorrect value)
         {
             printMayanNumber(correctNumber);
         }
         else
         {
-            printMayanNumber(randomizerForNumbers(number));
+            if (firstRand != 0)
+            {
+                printMayanNumber(firstRand);
+            }
+            else
+            {
+                printMayanNumber(secondRand);
+                secondRand = 0;
+            }
         }
 
         cout << "\nc.\n";
-        if (correctLetter == 'c')
+        if (correctLetter == 'c') //displays mayan number for c (could be correct or incorrect value)
         {
             printMayanNumber(correctNumber);
         }
         else
         {
-            printMayanNumber(randomizerForNumbers(number));
+            if(secondRand != 0)
+            {
+                printMayanNumber(secondRand);
+            }
+            else
+            {
+                printMayanNumber(firstRand);
+            }
         }
 
-        cout << "\nEnter a, b, or c: ";
-        letter = readLetter();
+        letter = readLetter(); //stores the answer letter entered by the user
 
-        if (letter == correctLetter)
+        if (letter == correctLetter) //self explanatory
         {
             cout << "\n\nCORRECT! The Mayan representation of " << correctNumber << " is:\n";
             printMayanNumber(correctNumber);
@@ -209,12 +242,12 @@ void mayaNumberGame()
         }
 
         cout << "\n\nEnter another number, or less than 10 to exit: ";
-        number = readNumber();
+        number = readNumber(); //to continue game loop the game asks the user to enter another number value
         cout << '\n';
     }
 }
 
-int readNumber() 
+int readNumber() //handles input for the number entered (handles input errors aswell)
 {
     int input = 0;
 	cin >> input;
@@ -233,7 +266,7 @@ int readNumber()
 	return input;
 }
 
-char readLetter()
+char readLetter() //handles input for the letter entered (handles input errors aswell)
 {
     char input = ' ';
 	cout << "\n\nPlease enter either 'a', 'b', or 'c': ";
@@ -253,14 +286,13 @@ char readLetter()
 	return input;
 }
 
-int randomizerForNumbers(int max)
+int randomizerForNumbers(int max, int min) //returns a random integer from minimum(min) to mnaximum(max)
 {
-    int min = 4;
-    int random = (rand() % max) + min; //min number is 4 due to assignment requirements
+    int random = rand() % (max - min) + min;
     return random;
 }
 
-char randomizerForABC()
+char randomizerForABC() //returns a random char (a, b, or c) which is the correct choice 
 {
     char choice = ' ';
     int max = 3; //max = 3 because 3 choices (a, b, c)
