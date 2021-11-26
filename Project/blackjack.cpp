@@ -1,6 +1,13 @@
 #include <iostream>
 using namespace std;
 
+//global variables
+const int CARDS_IN_DECK = 52;
+
+//function prototypes
+void getNewDeck(CardArray);
+
+//Card struct
 struct Card
 {
     string suit;
@@ -17,6 +24,7 @@ struct Card
     }
 };
 
+//CardArray struct
 struct CardArray
 {
     Card* cards;
@@ -31,8 +39,18 @@ struct CardArray
     }
 };
 
+
 int main()
 {
 
     system("pause");
+}
+
+void getNewDeck(CardArray & deck)
+{
+    deck.cardsSize = CARDS_IN_DECK;
+    deck.usedCards = CARDS_IN_DECK;
+
+    deck.cards = new 
+    //continue Assign the Card pointer the address of an array of 52 cards in dynamic memory (using new).
 }
