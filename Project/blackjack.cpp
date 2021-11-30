@@ -4,10 +4,6 @@
 #include <ctime>
 using namespace std;
 
-//global variables
-const int CARDS_IN_DECK = 52;
-const int NUM_OF_SUITS = 4;
-
 //Card struct
 struct Card
 {
@@ -46,6 +42,9 @@ void printDeck(const CardArray &);
 void shuffleDeck(CardArray &);
 int blackjack(CardArray &);
 void deal(CardArray &, CardArray &);
+int score(const CardArray);
+char decision();
+int isEnd(const CardArray, const CardArray);
 void winnerDisplay(int);
 
 int main()
@@ -55,10 +54,9 @@ int main()
     printDeck(deck); //display deck
     shuffleDeck(deck); //shuffle duck (randomize)
     printDeck(deck); //display deck
-
     winnerDisplay(blackjack(deck)); //play blackjack and display winner
     
-    delete[] deck.cards;
+    delete[] deck.cards; //delete deck CardArray to free memory
     system("pause");
 }
 
@@ -66,8 +64,9 @@ void getNewDeck(CardArray & deck) //function creates a new deck of cards
 {
     int cardNum = 0;
 
-    deck.cardsSize = CARDS_IN_DECK;
-    deck.usedCards = CARDS_IN_DECK;
+    const int cardsInDeck = 52; //52 cards in a deck
+    deck.cardsSize = cardsInDeck;
+    deck.usedCards = cardsInDeck;
 
     deck.cards = new Card[deck.cardsSize]; //assigns address of an array of 52 cards in dynamic memory to deck.cards pointer
     
@@ -187,32 +186,50 @@ int blackjack(CardArray & deck)
     CardArray playerHands; //array of cards in player's hands
     CardArray dealerHands; //array of cards in dealer's hands
 
-    playerHands.cardsSize = deck.cardsSize; //sets the amount of cards that player can hold to 52 (from deck.cardSize)
+    char choice = ' '; //to hold char value to either hit or stand
+
+    const int maxHandSize = 12; //maximum hands possible to play
+    playerHands.cardsSize = maxHandSize; //sets the amount of cards that player can hold to 12 (from instructions)
     playerHands.usedCards = 0; //sets player's used cards to 0
-    dealerHands.cardsSize = deck.cardsSize; //sets the amount of cards that dealer can hold to 52 (from deck.cardSize)
+    dealerHands.cardsSize = maxHandSize; //sets the amount of cards that dealer can hold to 12 (from instructions)
     dealerHands.usedCards = 0; //sets dealer's used cards to 0
 
     playerHands.cards = new Card[playerHands.cardsSize]; //create array of cards for playerHands
     dealerHands.cards = new Card[dealerHands.cardsSize]; //create array of cards for dealerHands
 
-    int playerScore = 0; //player's score
-    int dealerScore = 0; //dealer's score
-
     cout << "\n\n\nWelcome to blackjack!\n#####################\n\nDeal first card\n---------------\n"; //first deal
     deal(deck, playerHands);
     deal(deck, dealerHands);
 
-    cout << "+Player+: ";
-    cout << "*Dealer*: ";
+    cout << "+Player+: " << playerHands.cards[playerHands.usedCards - 1].description;
+    cout << "\n*Dealer*: " << dealerHands.cards[dealerHands.usedCards - 1].description;
 
-    cout << "\n\nDeal first card\n---------------\n"; //second deal
+    cout << "\n\nDeal second card\n----------------\n"; //second deal
     deal(deck, playerHands);
     deal(deck, dealerHands);
 
-    cout << "+Player+: ";
-    cout << "*Dealer*: ";
+    cout << "+Player+: " << playerHands.cards[playerHands.usedCards - 2].description << " " << playerHands.cards[playerHands.usedCards - 1].description;
+    cout << "\n*Dealer*: " << dealerHands.cards[dealerHands.usedCards - 2].description << " ??"; //keep dealer's second hand hidden
 
-    //continue step 3 on Implementation Notes
+    cout << "\n\nDealing to player\n----------------";
+    choice = decision();
+
+    if (choice == 'h')
+    {
+        deal(deck, playerHands);
+
+        cout << "+Player+:";
+        for (int count = 0; count < playerHands.usedCards; ++count)
+        {
+            cout << ' ' << playerHands.cards[count].description;
+        }
+    }
+    else if (choice == 's')
+    {
+        
+    }
+
+    //continue to create winner function
 
     delete[] playerHands.cards;
     delete[] dealerHands.cards;
@@ -225,6 +242,37 @@ void deal(CardArray & deck, CardArray & user) //deals cards to either player or 
 
     ++user.usedCards;
     --deck.usedCards;
+}
+
+int score(const CardArray hand) //returns score of a hand
+{
+    int score = 0;
+
+    for (int count = 0; count < hand.cardsSize; ++count)
+    {
+        score += hand.cards[count].value;
+    }
+    return score;
+}
+
+char decision() //handles input for the letter entered (handles input errors aswell)
+{
+    char input = ' ';
+	cout << "\nEnter h to hit or s to stand: ";
+	cin >> input;
+
+	while (input != 'h' && input != 's') 
+	{
+		cerr << "\n\nERROR: Please enter h to hit or s to stand: ";
+		if (cin.fail()) 
+		{
+			cin.clear();
+			cin.ignore(10000, '\n');
+		}
+		cin >> input;
+	}
+	cin.ignore(10000, '\n');
+	return input;
 }
 
 void winnerDisplay(int result)
@@ -241,4 +289,5 @@ void winnerDisplay(int result)
     {
         cout << "\n\nDealer wins, better luck next time.";
     }
+    cout << endl; //for formatting
 }
