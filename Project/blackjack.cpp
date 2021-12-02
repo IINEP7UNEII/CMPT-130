@@ -43,18 +43,24 @@ void shuffleDeck(CardArray &);
 int blackjack(CardArray &);
 void deal(CardArray &, CardArray &);
 int score(const CardArray);
-char decision();
-int isEnd(const CardArray, const CardArray);
+char decisionHitOrStand();
+bool isBust(int, int);
+bool isTwentyOne(int, int);
+void cardsPrint(const CardArray);
+int result(int, int);
 void winnerDisplay(int);
+void playGames(CardArray &);
+char decisionToPlay();
 
 int main()
 {
     CardArray deck; //create deck
     getNewDeck(deck); //initialize deck
     printDeck(deck); //display deck
-    shuffleDeck(deck); //shuffle duck (randomize)
+    cout << "\nshuffled\n";
+    shuffleDeck(deck); //shuffle deck (randomize)
     printDeck(deck); //display deck
-    winnerDisplay(blackjack(deck)); //play blackjack and display winner
+    playGames(deck);
     
     delete[] deck.cards; //delete deck CardArray to free memory
     system("pause");
@@ -174,8 +180,6 @@ void shuffleDeck(CardArray & deck) //function shuffles deck of cards
         deck.cards[deck.usedCards] = deck.cards[randIndex];
         deck.cards[randIndex] = temp.cards[deck.usedCards];
     }
-
-    cout << "\nshuffled\n";
     deck.usedCards = deck.cardsSize; //reset used cards back to the array size since all of the cards are present
 
     delete[] temp.cards;
@@ -183,57 +187,122 @@ void shuffleDeck(CardArray & deck) //function shuffles deck of cards
 
 int blackjack(CardArray & deck)
 {
-    CardArray playerHands; //array of cards in player's hands
-    CardArray dealerHands; //array of cards in dealer's hands
+    CardArray playerHand; //array of cards in player's hands
+    CardArray dealerHand; //array of cards in dealer's hands
 
     char choice = ' '; //to hold char value to either hit or stand
+    const int blackjackWin = 21; //get 21 to win
+    int pscore = 0; //these variables are briefly used to store the score of the layers to allow deletion of dynamic memory without loosing the store
+    int dscore = 0;
+    const int dealerStand = 17; //dealer will stand if their score is 17 or more
 
     const int maxHandSize = 12; //maximum hands possible to play
-    playerHands.cardsSize = maxHandSize; //sets the amount of cards that player can hold to 12 (from instructions)
-    playerHands.usedCards = 0; //sets player's used cards to 0
-    dealerHands.cardsSize = maxHandSize; //sets the amount of cards that dealer can hold to 12 (from instructions)
-    dealerHands.usedCards = 0; //sets dealer's used cards to 0
+    playerHand.cardsSize = maxHandSize; //sets the amount of cards that player can hold to 12 (from instructions)
+    playerHand.usedCards = 0; //sets player's used cards to 0
+    dealerHand.cardsSize = maxHandSize; //sets the amount of cards that dealer can hold to 12 (from instructions)
+    dealerHand.usedCards = 0; //sets dealer's used cards to 0
 
-    playerHands.cards = new Card[playerHands.cardsSize]; //create array of cards for playerHands
-    dealerHands.cards = new Card[dealerHands.cardsSize]; //create array of cards for dealerHands
+    playerHand.cards = new Card[playerHand.cardsSize]; //create array of cards for playerHands
+    dealerHand.cards = new Card[dealerHand.cardsSize]; //create array of cards for dealerHands
 
-    cout << "\n\n\nWelcome to blackjack!\n#####################\n\nDeal first card\n---------------\n"; //first deal
-    deal(deck, playerHands);
-    deal(deck, dealerHands);
+    if (deck.usedCards >= playerHand.usedCards || deck.usedCards >= dealerHand.usedCards) //replace deck if amount of used cards gets too close to the maximum an
+    {
+        shuffleDeck(deck);
+    }
 
-    cout << "+Player+: " << playerHands.cards[playerHands.usedCards - 1].description;
-    cout << "\n*Dealer*: " << dealerHands.cards[dealerHands.usedCards - 1].description;
+    cout << "\nDeal first card\n---------------\n"; //first deal
+    deal(deck, playerHand);
+    deal(deck, dealerHand);
+
+    cout << "+Player+: " << playerHand.cards[playerHand.usedCards - 1].description;
+    cout << "\n*Dealer*: " << dealerHand.cards[dealerHand.usedCards - 1].description;
 
     cout << "\n\nDeal second card\n----------------\n"; //second deal
-    deal(deck, playerHands);
-    deal(deck, dealerHands);
+    deal(deck, playerHand);
+    deal(deck, dealerHand);
 
-    cout << "+Player+: " << playerHands.cards[playerHands.usedCards - 2].description << " " << playerHands.cards[playerHands.usedCards - 1].description;
-    cout << "\n*Dealer*: " << dealerHands.cards[dealerHands.usedCards - 2].description << " ??"; //keep dealer's second hand hidden
+    cout << "+Player+: " << playerHand.cards[playerHand.usedCards - 2].description << " " << playerHand.cards[playerHand.usedCards - 1].description;
+    cout << "\n*Dealer*: " << dealerHand.cards[dealerHand.usedCards - 2].description << " ??"; //keep dealer's second hand hidden
+
+    if (isBust(score(playerHand), score(dealerHand)) || isTwentyOne(score(playerHand), score(dealerHand))) //ends game if anyone goes bust or hits blackjack after second deal
+    {
+        cout << "\n\n+Player+:";
+        cardsPrint(playerHand);
+        cout << "\n*Dealer*:";
+        cardsPrint(dealerHand);
+
+        pscore = score(playerHand);
+        dscore = score(dealerHand);
+        delete[] playerHand.cards;
+        delete[] dealerHand.cards;
+        return result(pscore, dscore);
+    }
 
     cout << "\n\nDealing to player\n----------------";
-    choice = decision();
+    choice = decisionHitOrStand();
 
-    if (choice == 'h')
+    while (choice == 'h' && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand))) //contiue loop if no one is bust, at blackjact, or player chose to stand
     {
-        deal(deck, playerHands);
+        deal(deck, playerHand);
 
         cout << "+Player+:";
-        for (int count = 0; count < playerHands.usedCards; ++count)
+        cardsPrint(playerHand);
+
+        if (score(dealerHand) < dealerStand && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand)) && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will hit
         {
-            cout << ' ' << playerHands.cards[count].description;
+            deal(deck, dealerHand);
+            cout << "\n*Dealer*:";
+            cardsPrint(dealerHand);
+        }
+
+        if (isBust(score(playerHand), score(dealerHand)) || isTwentyOne(score(playerHand), score(dealerHand)))
+        {
+            cout << "\n\n+Player+:";
+            cardsPrint(playerHand);
+            cout << "\n*Dealer*:";
+            cardsPrint(dealerHand);
+
+            pscore = score(playerHand);
+            dscore = score(dealerHand);
+            delete[] playerHand.cards;
+            delete[] dealerHand.cards;
+            return result(pscore, dscore);
+        }
+        choice = decisionHitOrStand();
+
+        if (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
+        {
+            while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
+            {
+                deal(deck, dealerHand);
+                cout << "\n*Dealer*:";
+                cardsPrint(dealerHand);
+            }
+            cout << '\n';
         }
     }
-    else if (choice == 's')
+
+    if (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
     {
-        
+        while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
+        {
+            deal(deck, dealerHand);
+            cout << "\n*Dealer*:";
+            cardsPrint(dealerHand);
+        }
+        cout << '\n';
     }
+    
+    cout << "\n+Player+:";
+    cardsPrint(playerHand);
+    cout << "\n*Dealer*:";
+    cardsPrint(dealerHand);
 
-    //continue to create winner function
-
-    delete[] playerHands.cards;
-    delete[] dealerHands.cards;
-    return 0;
+    pscore = score(playerHand);
+    dscore = score(dealerHand);
+    delete[] playerHand.cards;
+    delete[] dealerHand.cards;
+    return result(pscore, dscore);
 }
 
 void deal(CardArray & deck, CardArray & user) //deals cards to either player or dealer
@@ -255,7 +324,7 @@ int score(const CardArray hand) //returns score of a hand
     return score;
 }
 
-char decision() //handles input for the letter entered (handles input errors aswell)
+char decisionHitOrStand() //handles input for the letter entered (handles input errors aswell)
 {
     char input = ' ';
 	cout << "\nEnter h to hit or s to stand: ";
@@ -263,7 +332,7 @@ char decision() //handles input for the letter entered (handles input errors asw
 
 	while (input != 'h' && input != 's') 
 	{
-		cerr << "\n\nERROR: Please enter h to hit or s to stand: ";
+		cerr << "\nERROR: Please enter h to hit or s to stand: ";
 		if (cin.fail()) 
 		{
 			cin.clear();
@@ -273,6 +342,72 @@ char decision() //handles input for the letter entered (handles input errors asw
 	}
 	cin.ignore(10000, '\n');
 	return input;
+}
+
+int result(int player, int dealer)
+{
+    const int blackjackWin = 21; //get 21 to win
+    if (player > blackjackWin)
+    {
+        return -1;
+    }
+    else if (dealer > blackjackWin)
+    {
+        return 1;
+    }
+    else if (player > dealer)
+    {
+        return 1;
+    }
+    else if (dealer > player)
+    {
+        return -1;
+    }
+    else if (player == dealer)
+    {
+        return 0;
+    }
+    else
+    {
+        cerr << "\n\nERROR: Logic error in result()";
+        return 0;
+    }
+}
+
+bool isBust(int player, int dealer) //returns true if player's or dealer'ss core went above 21 otherwise returns false
+{
+    const int blackjackWin = 21; //get 21 to win
+
+    if (player > blackjackWin || dealer > blackjackWin)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool isTwentyOne(int player, int dealer) //returns true if etiher player or dealer got blackjack (21) as a score
+{
+    const int blackjackWin = 21; //get 21 to win
+
+    if (player == blackjackWin || dealer == blackjackWin)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void cardsPrint(const CardArray user)
+{
+    for (int count = 0; count < user.usedCards; ++count) //displays all cards in hand
+    {
+        cout << ' ' << user.cards[count].description;
+    }
 }
 
 void winnerDisplay(int result)
@@ -289,5 +424,73 @@ void winnerDisplay(int result)
     {
         cout << "\n\nDealer wins, better luck next time.";
     }
+    else
+    {
+        cerr << "\n\nERROR: Unexpected argument in winnerDisplay()";
+    }
     cout << endl; //for formatting
+}
+
+void playGames(CardArray & deck) //game loop for part 3
+{
+    int wins = 0;
+    int losses = 0;
+    int draws = 0;
+    int games = 0;
+    int result = 0;
+    char choice = ' ';
+
+    cout << "\n\n\nWelcome to blackjack!\n#####################\n";
+    choice = decisionToPlay();
+    
+    while (choice == 'p')
+    {
+        ++games;
+        cout << '\n';
+
+        result = blackjack(deck);
+        winnerDisplay(result); //display winner
+
+        cout << "\n\nDo you want to play another hand? ";
+        choice = decisionToPlay();
+
+        if (result == 1)
+        {
+            ++wins;
+        }
+        else if (result == 0)
+        {
+            ++draws;
+        }
+        else if (result == -1)
+        {
+            ++losses;
+        }
+
+        if (choice == 'q')
+        {
+            cout << "\n\nPost game summary:\nWins: " << wins << "\nLosses: " << losses << "\nDraws: " << draws << "\nGames: " << games << '\n';
+        }
+        shuffleDeck(deck); //shuffle deck (randomize)
+    }
+}
+
+char decisionToPlay()
+{
+    char input = ' ';
+	cout << "\nEnter p to play or q to quit: ";
+	cin >> input;
+
+	while (input != 'p' && input != 'q') 
+	{
+		cerr << "\nERROR: Please enter p to play or q to quit: ";
+		if (cin.fail()) 
+		{
+			cin.clear();
+			cin.ignore(10000, '\n');
+		}
+		cin >> input;
+	}
+	cin.ignore(10000, '\n');
+	return input;
 }
