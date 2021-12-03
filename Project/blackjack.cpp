@@ -1,3 +1,5 @@
+//Program made by: Daniel Tolsky
+//SFU ID: 301452597
 #include <iostream>
 #include <string>
 #include <random>
@@ -41,12 +43,15 @@ void getNewDeck(CardArray &);
 void printDeck(const CardArray &);
 void shuffleDeck(CardArray &);
 int blackjack(CardArray &);
+int gameLoop(CardArray &, CardArray &, CardArray &, char);
 void deal(CardArray &, CardArray &);
-int score(const CardArray);
+int score(const CardArray &);
 char decisionHitOrStand();
 bool isBust(int, int);
 bool isTwentyOne(int, int);
-void cardsPrint(const CardArray);
+bool containsAce(const CardArray &);
+void aceToOne (CardArray &);
+void cardsPrint(const CardArray &);
 int result(int, int);
 void winnerDisplay(int);
 void playGames(CardArray &);
@@ -224,6 +229,16 @@ int blackjack(CardArray & deck)
     cout << "+Player+: " << playerHand.cards[playerHand.usedCards - 2].description << " " << playerHand.cards[playerHand.usedCards - 1].description;
     cout << "\n*Dealer*: " << dealerHand.cards[dealerHand.usedCards - 2].description << " ??"; //keep dealer's second hand hidden
 
+    if (isBust(score(playerHand), 0) && containsAce(playerHand)) //use 0 in order to not include score(dealerHand) argument, only checking if player is bust
+    {
+        aceToOne(playerHand);
+    }
+
+    if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+    {
+        aceToOne(dealerHand);
+    }
+
     if (isBust(score(playerHand), score(dealerHand)) || isTwentyOne(score(playerHand), score(dealerHand))) //ends game if anyone goes bust or hits blackjack after second deal
     {
         cout << "\n\n+Player+:";
@@ -237,13 +252,27 @@ int blackjack(CardArray & deck)
         delete[] dealerHand.cards;
         return result(pscore, dscore);
     }
-
     cout << "\n\nDealing to player\n----------------";
+
+    return gameLoop(deck, playerHand, dealerHand, choice);
+}
+
+int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, char choice) //loops the game based on player choice
+{
+    int pscore = 0; //these variables are briefly used to store the score of the layers to allow deletion of dynamic memory without loosing the store
+    int dscore = 0;
+    const int dealerStand = 17; //dealer will stand if their score is 17 or more
+
     choice = decisionHitOrStand();
 
     while (choice == 'h' && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand))) //contiue loop if no one is bust, at blackjact, or player chose to stand
     {
         deal(deck, playerHand);
+
+        if (isBust(score(playerHand), 0) && containsAce(playerHand)) //use 0 in order to not include score(dealerHand) argument, only checking if player is bust
+        {
+            aceToOne(playerHand);
+        }
 
         cout << "+Player+:";
         cardsPrint(playerHand);
@@ -251,6 +280,12 @@ int blackjack(CardArray & deck)
         if (score(dealerHand) < dealerStand && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand)) && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will hit
         {
             deal(deck, dealerHand);
+
+            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+            {
+                aceToOne(dealerHand);
+            }
+
             cout << "\n*Dealer*:";
             cardsPrint(dealerHand);
         }
@@ -275,6 +310,12 @@ int blackjack(CardArray & deck)
             while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
             {
                 deal(deck, dealerHand);
+
+                if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+                {
+                    aceToOne(dealerHand);
+                }
+
                 cout << "\n*Dealer*:";
                 cardsPrint(dealerHand);
             }
@@ -287,6 +328,12 @@ int blackjack(CardArray & deck)
         while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
         {
             deal(deck, dealerHand);
+
+            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+            {
+                aceToOne(dealerHand);
+            }
+
             cout << "\n*Dealer*:";
             cardsPrint(dealerHand);
         }
@@ -313,7 +360,7 @@ void deal(CardArray & deck, CardArray & user) //deals cards to either player or 
     --deck.usedCards;
 }
 
-int score(const CardArray hand) //returns score of a hand
+int score(const CardArray & hand) //returns score of a hand
 {
     int score = 0;
 
@@ -402,7 +449,34 @@ bool isTwentyOne(int player, int dealer) //returns true if etiher player or deal
     }
 }
 
-void cardsPrint(const CardArray user)
+bool containsAce(const CardArray & user)
+{
+    for (int count = 0; count < user.usedCards; ++count)
+    {
+        if (user.cards[count].rank == 1) //1 is the rank of aces
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void aceToOne (CardArray & user)
+{
+    int count = 0;
+    const int blackjackWin = 21; //get 21 to win
+
+    while (count < user.usedCards && score(user) > blackjackWin) //loop while not out of bounds and user's score is less than 21 (in case of multiple aces)
+    {
+        if (user.cards[count].value == 11) //1 is the rank of aces
+        {
+            user.cards[count].value = 1;
+        }
+        ++count;
+    }
+}
+
+void cardsPrint(const CardArray & user)
 {
     for (int count = 0; count < user.usedCards; ++count) //displays all cards in hand
     {
