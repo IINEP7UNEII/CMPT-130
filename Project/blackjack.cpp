@@ -1,5 +1,22 @@
 //Program made by: Daniel Tolsky
 //SFU ID: 301452597
+/*
+Advice is given on these conditions (and their combinations):
+Advice is only given if the game did not end nor did neither sides go bust.
+When player's score is less than the dealer's score.
+When player's score is greater than the dealer's score.
+When player's score is less than or equals to 17.
+When player's score is greater than or equals to 17.
+When player does not contain aces in their hand.
+When player contains aces in their hand.
+When player contains does not large value cards (such as jack, king, queen) in their hand.
+When player contains large value cards (such as jack, king, queen) in their hand.
+When not all the dealer's cards are known.
+When all the dealer's cards are known.
+When there is no chance of bust (score is less than or equal to 11).
+When there is chance of bust (score is greater than or equal to 11).
+*/
+//I hereby confirm that this is my own work and I have not violated any of SFU’s Code of Academic Integrity and Good Conduct (S10.01).
 #include <iostream>
 #include <string>
 #include <random>
@@ -55,6 +72,8 @@ void cardsPrint(const CardArray &);
 int result(int, int);
 void winnerDisplay(int);
 void playGames(CardArray &);
+void advice(const CardArray &, const CardArray &, bool);
+bool hasLargeCard(const CardArray &);
 char decisionToPlay();
 
 int main()
@@ -65,7 +84,7 @@ int main()
     cout << "\nshuffled\n";
     shuffleDeck(deck); //shuffle deck (randomize)
     printDeck(deck); //display deck
-    playGames(deck);
+    playGames(deck); //play mutiple games
     
     delete[] deck.cards; //delete deck CardArray to free memory
     system("pause");
@@ -190,7 +209,7 @@ void shuffleDeck(CardArray & deck) //function shuffles deck of cards
     delete[] temp.cards;
 }
 
-int blackjack(CardArray & deck)
+int blackjack(CardArray & deck) //main game function
 {
     CardArray playerHand; //array of cards in player's hands
     CardArray dealerHand; //array of cards in dealer's hands
@@ -199,7 +218,7 @@ int blackjack(CardArray & deck)
     const int blackjackWin = 21; //get 21 to win
     int pscore = 0; //these variables are briefly used to store the score of the layers to allow deletion of dynamic memory without loosing the store
     int dscore = 0;
-    const int dealerStand = 17; //dealer will stand if their score is 17 or more
+    const int stand = 17; //dealer will stand if their score is 17 or more
 
     const int maxHandSize = 12; //maximum hands possible to play
     playerHand.cardsSize = maxHandSize; //sets the amount of cards that player can hold to 12 (from instructions)
@@ -234,7 +253,7 @@ int blackjack(CardArray & deck)
         aceToOne(playerHand);
     }
 
-    if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+    if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand)) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
     {
         aceToOne(dealerHand);
     }
@@ -257,13 +276,16 @@ int blackjack(CardArray & deck)
     return gameLoop(deck, playerHand, dealerHand, choice);
 }
 
-int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, char choice) //loops the game based on player choice
+int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, char choice) //function loops the game based on player choice
 {
     int pscore = 0; //these variables are briefly used to store the score of the layers to allow deletion of dynamic memory without loosing the store
     int dscore = 0;
-    const int dealerStand = 17; //dealer will stand if their score is 17 or more
+    const int stand = 17; //dealer will stand if their score is 17 or more
+    bool unknownScore = true; //variable shows when dealer's score is unknown
 
+    advice(playerHand, dealerHand, unknownScore);
     choice = decisionHitOrStand();
+    unknownScore = false;
 
     while (choice == 'h' && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand))) //contiue loop if no one is bust, at blackjact, or player chose to stand
     {
@@ -277,11 +299,11 @@ int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, c
         cout << "+Player+:";
         cardsPrint(playerHand);
 
-        if (score(dealerHand) < dealerStand && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand)) && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will hit
+        if (score(dealerHand) < stand && !isBust(score(playerHand), score(dealerHand)) && !isTwentyOne(score(playerHand), score(dealerHand)) && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will hit
         {
             deal(deck, dealerHand);
 
-            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < stand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
             {
                 aceToOne(dealerHand);
             }
@@ -303,15 +325,16 @@ int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, c
             delete[] dealerHand.cards;
             return result(pscore, dscore);
         }
+        advice(playerHand, dealerHand, unknownScore);
         choice = decisionHitOrStand();
 
-        if (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
+        if (choice != 'h' && score(dealerHand) < stand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
         {
-            while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
+            while (choice != 'h' && score(dealerHand) < stand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
             {
                 deal(deck, dealerHand);
 
-                if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+                if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < stand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
                 {
                     aceToOne(dealerHand);
                 }
@@ -323,13 +346,13 @@ int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, c
         }
     }
 
-    if (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
+    if (choice != 'h' && score(dealerHand) < stand && score(dealerHand) <= score(playerHand)) //if statement to only print newline below once (for formatting)
     {
-        while (choice != 'h' && score(dealerHand) < dealerStand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
+        while (choice != 'h' && score(dealerHand) < stand && score(dealerHand) <= score(playerHand)) //if dealer's score is less than 17 they will keep hitting
         {
             deal(deck, dealerHand);
 
-            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < dealerStand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
+            if (isBust(score(dealerHand), 0) && containsAce(dealerHand) && score(dealerHand) < stand) //use 0 in order to not include score(playerHand) argument, only checking if dealer is bust
             {
                 aceToOne(dealerHand);
             }
@@ -352,7 +375,7 @@ int gameLoop(CardArray & deck, CardArray & playerHand, CardArray & dealerHand, c
     return result(pscore, dscore);
 }
 
-void deal(CardArray & deck, CardArray & user) //deals cards to either player or dealer
+void deal(CardArray & deck, CardArray & user) //function deals cards to either player or dealer
 {
     user.cards[user.usedCards] = deck.cards[deck.usedCards - 1];
 
@@ -360,7 +383,7 @@ void deal(CardArray & deck, CardArray & user) //deals cards to either player or 
     --deck.usedCards;
 }
 
-int score(const CardArray & hand) //returns score of a hand
+int score(const CardArray & hand) //function returns score of a hand
 {
     int score = 0;
 
@@ -371,7 +394,7 @@ int score(const CardArray & hand) //returns score of a hand
     return score;
 }
 
-char decisionHitOrStand() //handles input for the letter entered (handles input errors aswell)
+char decisionHitOrStand() //function handles input for the letter entered (handles input errors aswell)
 {
     char input = ' ';
 	cout << "\nEnter h to hit or s to stand: ";
@@ -391,7 +414,7 @@ char decisionHitOrStand() //handles input for the letter entered (handles input 
 	return input;
 }
 
-int result(int player, int dealer)
+int result(int player, int dealer) //function returns result of a game
 {
     const int blackjackWin = 21; //get 21 to win
     if (player > blackjackWin)
@@ -421,7 +444,7 @@ int result(int player, int dealer)
     }
 }
 
-bool isBust(int player, int dealer) //returns true if player's or dealer'ss core went above 21 otherwise returns false
+bool isBust(int player, int dealer) //function returns true if player's or dealer'ss core went above 21 otherwise returns false
 {
     const int blackjackWin = 21; //get 21 to win
 
@@ -435,7 +458,7 @@ bool isBust(int player, int dealer) //returns true if player's or dealer'ss core
     }
 }
 
-bool isTwentyOne(int player, int dealer) //returns true if etiher player or dealer got blackjack (21) as a score
+bool isTwentyOne(int player, int dealer) //function returns true if etiher player or dealer got blackjack (21) as a score
 {
     const int blackjackWin = 21; //get 21 to win
 
@@ -449,7 +472,7 @@ bool isTwentyOne(int player, int dealer) //returns true if etiher player or deal
     }
 }
 
-bool containsAce(const CardArray & user)
+bool containsAce(const CardArray & user) //function cheacks if hand contains an ace
 {
     for (int count = 0; count < user.usedCards; ++count)
     {
@@ -461,7 +484,7 @@ bool containsAce(const CardArray & user)
     return false;
 }
 
-void aceToOne (CardArray & user)
+void aceToOne (CardArray & user) //function converts ace to the value of 1
 {
     int count = 0;
     const int blackjackWin = 21; //get 21 to win
@@ -476,7 +499,7 @@ void aceToOne (CardArray & user)
     }
 }
 
-void cardsPrint(const CardArray & user)
+void cardsPrint(const CardArray & user) //function prints cards in a hand (either player's hand or the dealers')
 {
     for (int count = 0; count < user.usedCards; ++count) //displays all cards in hand
     {
@@ -484,7 +507,7 @@ void cardsPrint(const CardArray & user)
     }
 }
 
-void winnerDisplay(int result)
+void winnerDisplay(int result) //function displays winner
 {
     if (result == 1)
     {
@@ -549,7 +572,7 @@ void playGames(CardArray & deck) //game loop for part 3
     }
 }
 
-char decisionToPlay()
+char decisionToPlay() //function asks player if they want to continue playing (or start playing)
 {
     char input = ' ';
 	cout << "\nEnter p to play or q to quit: ";
@@ -567,4 +590,85 @@ char decisionToPlay()
 	}
 	cin.ignore(10000, '\n');
 	return input;
+}
+
+void advice(const CardArray & playerDeck, const CardArray & dealerDeck, bool unknown) //function gives advice to player to hit or stand
+{
+    const int stand = 17; //stand if their score is 17 or greater
+    const int minHit = 11; //always hit if score is below 11 (no sense to stand)
+
+    cout << '\n';
+
+    if (score(playerDeck) <= minHit)
+    {
+        cout << "You should definitely hit, your score is " << score(playerDeck) << " which is less than or euqal to 11, there is no chance of bust";
+    }
+    else if (score(playerDeck) < score(dealerDeck) && !isBust(score(playerDeck), score(dealerDeck)) && !isTwentyOne(score(playerDeck), score(dealerDeck)) && !unknown)
+    {
+        cout << "It is recommended that you hit because your score (" << score(playerDeck) << ") is lower than the dealers' (you WILL lose if you stand!)";
+    }
+    else if (score(playerDeck) == score(dealerDeck) && !isBust(score(playerDeck), score(dealerDeck)) && !isTwentyOne(score(playerDeck), score(dealerDeck)) && !unknown)
+    {
+        cout << "You are currently have the same score (" << score(playerDeck) << ") as the dealer";
+
+        if (score(playerDeck) < stand && hasLargeCard(playerDeck))
+        {
+            cout << ", htting could secure your position because your score (" << score(playerDeck) << ") is still below 17\nand you have a large card which reduces chance of bust on next deal";
+        }
+        else
+        {
+            cout << " it is recommended to stand\nas hitting would be highly risking a bust";
+        }
+    }
+    else if (score(playerDeck) > score(dealerDeck) && !isBust(score(playerDeck), score(dealerDeck)) && !isTwentyOne(score(playerDeck), score(dealerDeck)) && !unknown)
+    {
+        cout << "You are currently have a greater score than the dealer";
+
+        if (containsAce(playerDeck) && score(playerDeck) < stand)
+        {
+            cout << ", consider hitting as you still have an ace for backup and your score (" << score(playerDeck) << ") is less than 17";
+        }
+        else if (score(playerDeck) >= stand)
+        {
+            cout << " you should stand as your score (" << score(playerDeck) << ") is already greater than or equals to 17 and is greater than the dealer's score";
+        }
+    }
+    else if (unknown)
+    {
+        if (score(playerDeck) < stand && hasLargeCard(playerDeck))
+        {
+            cout << "Hitting could secure your position because your score (" << score(playerDeck) << ") is still below 17\nand you have a large card which reduces chance of bust on next deal";
+        }
+        else if (containsAce(playerDeck) && score(playerDeck) < stand)
+        {
+            cout << "Consider hitting as you still have an ace for backup and your score (" << score(playerDeck) << ") is less than 17";
+        }
+        else if (score(playerDeck) < stand)
+        {
+            cout << "Hitting could help you to get he lead, although the chances are risky as you do not have\nan ace or a large card";
+        }
+        else if (score(playerDeck) >= stand)
+        {
+            cout << "You should stand as your score (" << score(playerDeck) << ") is already greater than or equals to 17, hitting would be risky";
+        }
+        else
+        {
+            cout << "It is recommended to stand as hitting would be highly risking a bust";
+        }
+    }
+
+    cout << '\n';
+}
+
+bool hasLargeCard(const CardArray & user) //function return whether a hand contains a large card (10, jack, queen, king)
+{
+    const int largeCardRank = 11; //not 1 because aces can be reverted to a 1 in case of bust
+    for (int count = 0; count < user.usedCards; ++count) //displays all cards in hand
+    {
+        if (user.cards[count].rank >= largeCardRank)
+        {
+            return true;
+        }
+    }
+    return false;
 }
